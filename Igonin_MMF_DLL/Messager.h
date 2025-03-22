@@ -22,9 +22,9 @@ HANDLE mapsend(int addr, const char* str)
 
 
     UnmapViewOfFile(buff);
+    CloseHandle(hFile);
     return hFileMap;
     //    CloseHandle(hFileMap);
-    CloseHandle(hFile);
 }
 
 std::string mapreceive(header& h)
@@ -49,6 +49,9 @@ std::string mapreceive(header& h)
 }
 
 extern "C" _declspec(dllexport) void MapSend(int addr, const char* str) {
-    mapsend(addr)
+    mapsend(addr, str);
 }
 
+extern "C" _declspec(dllexport) std::string MapReceive(header& h) {
+    return mapreceive(h);
+}

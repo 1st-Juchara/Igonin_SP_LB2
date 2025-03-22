@@ -48,7 +48,8 @@
             <StackPanel Width="150" Margin="10,0,0,0">
                 <ListView Height="150" 
                           BorderBrush="#777" Background="#EEE"
-                          ItemsSource="{Binding Sessions}">
+                          ItemsSource="{Binding Sessions}"
+                          SelectedIndex="{Binding SelectedThreat}">
                     <ListView.ItemTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding}"/>

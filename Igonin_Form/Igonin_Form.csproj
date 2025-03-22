@@ -10,4 +10,8 @@
     <ProduceReferenceAssembly>False</ProduceReferenceAssembly>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Igonin_MMF_DLL\Igonin_MMF_DLL.vcxproj" />
+  </ItemGroup>
+
 </Project>

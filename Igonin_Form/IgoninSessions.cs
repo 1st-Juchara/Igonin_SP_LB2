@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -25,6 +26,12 @@ namespace Igonin_Form
 
 		string threatMessage = "clear";
 		public string ThreatMessage { get => threatMessage; set => Set(ref threatMessage, value); }
+
+		int selectedThreat = -1;
+		public int SelectedThreat { get => selectedThreat; set => Set(ref selectedThreat, value); }
+
+		[DllImport("Igonin_MMF_DLL.dll")]
+		private static extern void MapSend(int inx, string msg);
 
 		public void StartSession()
 		{
@@ -64,7 +71,10 @@ namespace Igonin_Form
 
 		public void GetMessage()
 		{
-			//get message from c++
+			if (SelectedThreat == 0)
+				MapSend(SelectedThreat, ThreatMessage);
+			else if (SelectedThreat > 1)
+				MapSend(SelectedThreat - 1, ThreatMessage);
 		}
 	}
 }
