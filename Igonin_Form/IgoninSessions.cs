@@ -31,7 +31,7 @@ namespace Igonin_Form
 		public int SelectedThreat { get => selectedThreat; set => Set(ref selectedThreat, value); }
 
 		[DllImport("Igonin_MMF_DLL.dll")]
-		private static extern void MapSend(int inx, string msg);
+		private static extern void mapSend(int inx, string msg);
 
 		public void StartSession()
 		{
@@ -72,9 +72,9 @@ namespace Igonin_Form
 		public void GetMessage()
 		{
 			if (SelectedThreat == 0)
-				MapSend(SelectedThreat, ThreatMessage);
+				mapSend(SelectedThreat, ThreatMessage);
 			else if (SelectedThreat > 1)
-				MapSend(SelectedThreat - 1, ThreatMessage);
+				mapSend(SelectedThreat - 1, ThreatMessage);
 		}
 	}
 }

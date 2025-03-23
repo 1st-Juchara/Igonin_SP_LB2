@@ -1,57 +1,19 @@
 #pragma once
-#include "iostream"
-using namespace std;
 
+#ifdef IGONIN_DLL_EXPORTS
+#define IGONIN_DLL_API __declspec(dllexport)
+#else
+#define IGONIN_DLL_API __declspec(dllimport)
+#endif
 
+#include <windows.h>
 
-struct header
-{
+struct header {
     int addr;
     int size;
 };
 
-HANDLE mapsend(int addr, const char* str)
-{
-    header h = { addr, strlen(str) + 1 };
-    HANDLE hFile = CreateFile("filemap.dat", GENERIC_READ | GENERIC_WRITE, FILE_SHARE_WRITE | FILE_SHARE_READ, NULL, OPEN_ALWAYS, 0, 0);
-    HANDLE hFileMap = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, h.size + sizeof(header), "MyMap");
-    char* buff = (char*)MapViewOfFile(hFileMap, FILE_MAP_ALL_ACCESS, 0, 0, h.size + sizeof(header));
-
-    memcpy(buff, &h, sizeof(header));
-    memcpy(buff + sizeof(header), str, h.size);
-
-
-    UnmapViewOfFile(buff);
-    CloseHandle(hFile);
-    return hFileMap;
-    //    CloseHandle(hFileMap);
-}
-
-std::string mapreceive(header& h)
-{
-    HANDLE hFile = CreateFile("filemap.dat", GENERIC_READ | GENERIC_WRITE, FILE_SHARE_WRITE | FILE_SHARE_READ, NULL, OPEN_ALWAYS, 0, 0);
-
-    HANDLE hFileMap = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, sizeof(header), "MyMap");
-    LPVOID buff = MapViewOfFile(hFileMap, FILE_MAP_ALL_ACCESS, 0, 0, sizeof(header));
-    h = *((header*)buff);
-    UnmapViewOfFile(buff);
-    CloseHandle(hFileMap);
-
-    int n = h.size + sizeof(header);
-    hFileMap = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, n, "MyMap");
-    buff = MapViewOfFile(hFileMap, FILE_MAP_ALL_ACCESS, 0, 0, n);
-    //   cout << GetLastErrorString();
-    string s((char*)buff + sizeof(header), h.size);
-
-    UnmapViewOfFile(buff);
-    CloseHandle(hFileMap);
-    return s;
-}
-
-extern "C" _declspec(dllexport) void MapSend(int addr, const char* str) {
-    mapsend(addr, str);
-}
-
-extern "C" _declspec(dllexport) std::string MapReceive(header& h) {
-    return mapreceive(h);
+extern "C" {
+    IGONIN_DLL_API HANDLE mapSend(int addr, const wchar_t* str);
+    IGONIN_DLL_API bool mapReceive(header& h, wchar_t* buffer, int bufferSize);
 }
