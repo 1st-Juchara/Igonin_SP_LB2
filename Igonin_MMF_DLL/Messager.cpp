@@ -23,6 +23,11 @@ extern "C" {
         return hFileMap;
     }
 
+    IGONIN_DLL_API void jopa()
+    {
+        return;
+    }
+
     IGONIN_DLL_API bool mapReceive(header& h, wchar_t* buffer, int bufferSize)
     {
         if (!buffer || bufferSize <= 0) return false;

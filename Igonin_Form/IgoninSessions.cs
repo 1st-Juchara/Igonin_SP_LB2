@@ -11,6 +11,13 @@ namespace Igonin_Form
 {
 	internal class IgoninSessions : ViewModelBase
 	{
+
+		[DllImport("Igonin_MMF_DLL.dll", CharSet = CharSet.Unicode)]
+		public static extern IntPtr mapSend(int inx, string msg);
+
+		[DllImport("Igonin_MMF_DLL.dll", CharSet = CharSet.Unicode)]
+		public static extern void jopa();
+
 		Process childProcess = null;
 		System.Threading.EventWaitHandle stopEvent = new EventWaitHandle(false, EventResetMode.AutoReset, "StopEvent");
 		System.Threading.EventWaitHandle startEvent = new EventWaitHandle(false, EventResetMode.AutoReset, "StartEvent");
@@ -30,8 +37,7 @@ namespace Igonin_Form
 		int selectedThreat = -1;
 		public int SelectedThreat { get => selectedThreat; set => Set(ref selectedThreat, value); }
 
-		[DllImport("Igonin_MMF_DLL.dll")]
-		private static extern void mapSend(int inx, string msg);
+		
 
 		public void StartSession()
 		{
@@ -71,10 +77,11 @@ namespace Igonin_Form
 
 		public void GetMessage()
 		{
-			if (SelectedThreat == 0)
-				mapSend(SelectedThreat, ThreatMessage);
-			else if (SelectedThreat > 1)
-				mapSend(SelectedThreat - 1, ThreatMessage);
+			jopa();
+			//if (SelectedThreat == 0)
+			//	mapSend(SelectedThreat, ThreatMessage);
+			//else if (SelectedThreat > 1)
+			//	mapSend(SelectedThreat - 1, ThreatMessage);
 		}
 	}
 }

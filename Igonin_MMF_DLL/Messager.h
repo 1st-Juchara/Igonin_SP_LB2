@@ -15,5 +15,6 @@ struct header {
 
 extern "C" {
     IGONIN_DLL_API HANDLE mapSend(int addr, const wchar_t* str);
+    IGONIN_DLL_API void jopa();
     IGONIN_DLL_API bool mapReceive(header& h, wchar_t* buffer, int bufferSize);
 }
