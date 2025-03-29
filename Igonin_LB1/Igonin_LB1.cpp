@@ -1,12 +1,8 @@
 ﻿
 #include "SysProg.h"
-using namespace std;
-//#ifdef _DEBUG
-//#define new DEBUG_NEW
-//#endif
 
-//HANDLE hEvents[100];
-//CRITICAL_SECTION cs;
+using namespace std;
+
 
 enum MessageTypes
 {
@@ -32,11 +28,11 @@ struct Message
 	}
 };
 
-struct header
-{
-	int addr;
-	int size;
-};
+//struct header
+//{
+//	int addr;
+//	int size;
+//};
 
 class Session
 {
@@ -58,7 +54,7 @@ public:
 		CloseHandle(hEvent);
 	}
 
-	void addMessage(Message& m)
+	void AddMessage(Message& m)
 	{
 		EnterCriticalSection(&cs);
 		messages.push(m);
@@ -66,7 +62,7 @@ public:
 		LeaveCriticalSection(&cs);
 	}
 
-	bool getMessage(Message& m)
+	bool GetMessage(Message& m)
 	{
 		bool res = false;
 		WaitForSingleObject(hEvent, INFINITE);
@@ -85,10 +81,10 @@ public:
 		return res;
 	}
 
-	void addMessage(MessageTypes messageType, const string& data = "")
+	void AddMessage(MessageTypes messageType, const string& data = "")
 	{
 		Message m(messageType, data);
-		addMessage(m);
+		AddMessage(m);
 	}
 };
 
@@ -98,8 +94,10 @@ DWORD WINAPI MyThread(LPVOID lpParameter)
 	SafeWrite("session", session->sessionID, "created");
 	while (true)
 	{
+		//shared_lock<shared_mutex> ul(evMutex); // !!!NEW!!! !!!NEW!!! !!!NEW!!! !!!NEW!!! !!!NEW!!! !!!NEW!!! !!!NEW!!! !!!NEW!!! 
+		//cv.wait(ul);
 		Message m;
-		if (session->getMessage(m))
+		if (session->GetMessage(m))
 		{
 			switch (m.header.messageType)
 			{
@@ -112,7 +110,8 @@ DWORD WINAPI MyThread(LPVOID lpParameter)
 			case MT_DATA:
 			{
 				SafeWrite("session", session->sessionID, "data", m.data);
-				Sleep(500 * session->sessionID);
+				//Sleep(500 * session->sessionID);
+				//Write to file
 				break;
 			}
 			}
@@ -121,25 +120,10 @@ DWORD WINAPI MyThread(LPVOID lpParameter)
 	return 0;
 }
 
-HANDLE mapsend(int addr, const char* str)
-{
-	header h = { addr, strlen(str) + 1 };
-	HANDLE hFile = CreateFile("filemap.dat", GENERIC_READ | GENERIC_WRITE, FILE_SHARE_WRITE | FILE_SHARE_READ, NULL, OPEN_ALWAYS, 0, 0);
-	HANDLE hFileMap = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, h.size + sizeof(header), "MyMap");
-	char* buff = (char*)MapViewOfFile(hFileMap, FILE_MAP_ALL_ACCESS, 0, 0, h.size + sizeof(header));
-
-	memcpy(buff, &h, sizeof(header));
-	memcpy(buff + sizeof(header), str, h.size);
-
-	UnmapViewOfFile(buff);
-	return hFileMap;
-	CloseHandle(hFile);
-}
-
 void start()
 {
     vector<Session*> sessions;
-    vector<HANDLE> threads;
+    //vector<HANDLE> threads;
     InitializeCriticalSection(&cs);
     int i = 1;
 
@@ -148,31 +132,48 @@ void start()
     HANDLE hConfirmEvent = CreateEvent(NULL, FALSE, FALSE, "ConfirmEvent");
 	//sam pisal
 	HANDLE hCloseEvent = CreateEvent(NULL, FALSE, FALSE, "CloseEvent");
+	HANDLE hMessageEvent = CreateEvent(NULL, FALSE, FALSE, "MessageEvent");
     //
-	HANDLE hControlEvents[3] = { hStartEvent, hStopEvent, hCloseEvent };
+	HANDLE hControlEvents[4] = { hStartEvent, hStopEvent, hCloseEvent, hMessageEvent };
 	//sam pisal
     while (i)
     {
-        int n = WaitForMultipleObjects(3, hControlEvents, FALSE, INFINITE) - WAIT_OBJECT_0;
+        int n = WaitForMultipleObjects(4, hControlEvents, FALSE, INFINITE) - WAIT_OBJECT_0;
         switch (n)
         {
         case 0:
+		{
 			sessions.push_back(new Session(i++));
-			threads.push_back(CreateThread(NULL, 0, MyThread, (LPVOID)sessions.back(), 0, NULL));
-            SetEvent(hConfirmEvent);
-            break;
+			//threads.push_back(CreateThread(NULL, 0, MyThread, (LPVOID)sessions.back(), 0, NULL));
+			thread t(MyThread, (LPVOID)sessions.back());
+			t.detach();
+			SafeWrite("ABUBA");
+			SetEvent(hConfirmEvent);
+			break;
+		}
         case 1:
-            sessions.back()->addMessage(MT_CLOSE);
-			WaitForSingleObject(threads.back(), INFINITE);
+		{
+			sessions.back()->AddMessage(MT_CLOSE);
+			//WaitForSingleObject(threads.back(), INFINITE);
+			//shared_lock<shared_mutex> ul(evMutex); // !!!NEW!!! !!!NEW!!! !!!NEW!!! !!!NEW!!! !!!NEW!!! !!!NEW!!! !!!NEW!!! !!!NEW!!!
+			
 			sessions.pop_back();
-			threads.pop_back();
+			//threads.pop_back();
 			i--;
-            SetEvent(hConfirmEvent);
+			SetEvent(hConfirmEvent);
 			if (i == 1)
 				return;
-            break;
+			break;
+		}
 		case 2:
 			return;
+			break;
+		case 3:
+			//sessions.back()->AddMessage(MT_DATA);
+			header h = {0, 0};
+			wstring msg = mapReceive(h);
+			SafeWriteW(L"comment: ", msg);
+			SetEvent(hConfirmEvent);
 			break;
         }
     }
@@ -183,6 +184,7 @@ void start()
 
 int main()
 {
+	setlocale(0, "");
     start();
     return 0;
 }

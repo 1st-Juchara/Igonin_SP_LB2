@@ -13,16 +13,14 @@ namespace Igonin_Form
 	{
 
 		[DllImport("Igonin_MMF_DLL.dll", CharSet = CharSet.Unicode)]
-		public static extern IntPtr mapSend(int inx, string msg);
-
-		[DllImport("Igonin_MMF_DLL.dll", CharSet = CharSet.Unicode)]
-		public static extern void jopa();
+		public static extern void mapSend(int inx, string msg);
 
 		Process childProcess = null;
 		System.Threading.EventWaitHandle stopEvent = new EventWaitHandle(false, EventResetMode.AutoReset, "StopEvent");
 		System.Threading.EventWaitHandle startEvent = new EventWaitHandle(false, EventResetMode.AutoReset, "StartEvent");
 		System.Threading.EventWaitHandle confirmEvent = new EventWaitHandle(false, EventResetMode.AutoReset, "ConfirmEvent");
 		System.Threading.EventWaitHandle closeEvent = new EventWaitHandle(false, EventResetMode.AutoReset, "CloseEvent");
+		System.Threading.EventWaitHandle messageEvent = new EventWaitHandle(false, EventResetMode.AutoReset, "MessageEvent");
 
 		public ObservableCollection<string> Sessions { get; set; } = new ObservableCollection<string>();
 		
@@ -75,13 +73,21 @@ namespace Igonin_Form
 			closeEvent.Set();
 		}
 
-		public void GetMessage()
+		private void SendMessage(int inx, string message)
 		{
-			jopa();
-			//if (SelectedThreat == 0)
-			//	mapSend(SelectedThreat, ThreatMessage);
-			//else if (SelectedThreat > 1)
-			//	mapSend(SelectedThreat - 1, ThreatMessage);
+			if (!(childProcess == null || childProcess.HasExited || (sNumber == 0) || (string.IsNullOrEmpty(message)))) {
+				mapSend(inx, message);
+				messageEvent.Set();
+				confirmEvent.WaitOne();
+			}
+		}
+
+		public void SendMessageToThreat()
+		{
+			if (SelectedThreat == 0)
+				SendMessage(SelectedThreat, ThreatMessage);
+			else if (SelectedThreat > 1)
+				SendMessage(SelectedThreat - 1, ThreatMessage);
 		}
 	}
 }

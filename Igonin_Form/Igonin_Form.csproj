@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
-    <BaseOutputPath>D:\U4oba\6_semak\System_Prog\Igonin_LB1\x64\</BaseOutputPath>
+    <BaseOutputPath>D:\U4oba\6_semak\System_Prog\Igonin_SP_LB2\x64\</BaseOutputPath>
     <ProduceReferenceAssembly>False</ProduceReferenceAssembly>
   </PropertyGroup>
 

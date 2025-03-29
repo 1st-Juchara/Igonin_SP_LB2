@@ -7,14 +7,14 @@
 #endif
 
 #include <windows.h>
+#include <string>
+#include <iostream>
 
 struct header {
     int addr;
     int size;
 };
 
-extern "C" {
-    IGONIN_DLL_API HANDLE mapSend(int addr, const wchar_t* str);
-    IGONIN_DLL_API void jopa();
-    IGONIN_DLL_API bool mapReceive(header& h, wchar_t* buffer, int bufferSize);
-}
+extern "C" IGONIN_DLL_API void mapSend(int addr, const wchar_t* str);
+
+IGONIN_DLL_API std::wstring mapReceive(header& h);

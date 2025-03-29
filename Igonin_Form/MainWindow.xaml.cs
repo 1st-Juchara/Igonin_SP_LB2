@@ -51,9 +51,9 @@ namespace Lab_1_Igonin
 		{
 			Sessions.SessionsCount -= 1;
 		}
-		private void Button_Get_Message(object sender, RoutedEventArgs e)
+		private void Button_Send_Message(object sender, RoutedEventArgs e)
 		{
-			Sessions.GetMessage();
+			Sessions.SendMessageToThreat();
 		}
 		private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
 		{
