@@ -3,6 +3,28 @@
 
 using namespace std;
 
+bool saveWstringToFile(const string& filePath, const wstring& content) {
+	// Открываем файл для записи в широком символьном режиме
+	std::wofstream outFile(filePath, std::ios::out); // std::ios::out - режим записи
+
+	// Устанавливаем локаль для корректной работы с Unicode (опционально)
+	outFile.imbue(std::locale("")); // Системная локаль
+
+	// Проверяем, открылся ли файл
+	if (!outFile.is_open()) {
+		return false;
+	}
+
+	// Записываем содержимое
+	outFile << content;
+
+	// Закрываем файл (не обязательно, т.к. деструктор сделает это автоматически)
+	outFile.close();
+
+	// Проверяем, не было ли ошибок
+	return !outFile.fail();
+}
+
 
 enum MessageTypes
 {
@@ -19,9 +41,9 @@ struct MessageHeader
 struct Message
 {
 	MessageHeader header = { 0 };
-	string data;
+	wstring data;
 	Message() = default;
-	Message(MessageTypes messageType, const string& data = "")
+	Message(MessageTypes messageType, const wstring& data = L"")
 		:data(data)
 	{
 		header = { messageType,  int(data.length()) };
@@ -81,7 +103,7 @@ public:
 		return res;
 	}
 
-	void AddMessage(MessageTypes messageType, const string& data = "")
+	void AddMessage(MessageTypes messageType, const wstring& data = L"")
 	{
 		Message m(messageType, data);
 		AddMessage(m);
@@ -94,8 +116,6 @@ DWORD WINAPI MyThread(LPVOID lpParameter)
 	SafeWrite("session", session->sessionID, "created");
 	while (true)
 	{
-		//shared_lock<shared_mutex> ul(evMutex); // !!!NEW!!! !!!NEW!!! !!!NEW!!! !!!NEW!!! !!!NEW!!! !!!NEW!!! !!!NEW!!! !!!NEW!!! 
-		//cv.wait(ul);
 		Message m;
 		if (session->GetMessage(m))
 		{
@@ -109,9 +129,11 @@ DWORD WINAPI MyThread(LPVOID lpParameter)
 			}
 			case MT_DATA:
 			{
-				SafeWrite("session", session->sessionID, "data", m.data);
+				SafeWriteW(L"session", session->sessionID, L"data", m.data);
 				//Sleep(500 * session->sessionID);
 				//Write to file
+				if (!saveWstringToFile("message.txt", m.data))
+					SafeWriteW(L"session", session->sessionID, L"data error");
 				break;
 			}
 			}
@@ -169,10 +191,10 @@ void start()
 			return;
 			break;
 		case 3:
-			//sessions.back()->AddMessage(MT_DATA);
 			header h = {0, 0};
 			wstring msg = mapReceive(h);
-			SafeWriteW(L"comment: ", msg);
+			sessions[h.addr]->AddMessage(MT_DATA, msg);
+			//SafeWriteW(L"comment: ", msg);
 			SetEvent(hConfirmEvent);
 			break;
         }
@@ -184,7 +206,7 @@ void start()
 
 int main()
 {
-	setlocale(0, "");
+	setlocale(LC_CTYPE, "Russian");
     start();
     return 0;
 }
