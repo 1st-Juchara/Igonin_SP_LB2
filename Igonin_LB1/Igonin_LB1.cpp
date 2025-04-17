@@ -132,7 +132,7 @@ DWORD WINAPI MyThread(LPVOID lpParameter)
 				SafeWriteW(L"session", session->sessionID, L"data", m.data);
 				//Sleep(500 * session->sessionID);
 				//Write to file
-				if (!saveWstringToFile("message.txt", m.data))
+				if (!saveWstringToFile(format("message_{}.txt", session->sessionID), m.data))
 					SafeWriteW(L"session", session->sessionID, L"data error");
 				break;
 			}
@@ -169,7 +169,6 @@ void start()
 			//threads.push_back(CreateThread(NULL, 0, MyThread, (LPVOID)sessions.back(), 0, NULL));
 			thread t(MyThread, (LPVOID)sessions.back());
 			t.detach();
-			SafeWrite("ABUBA");
 			SetEvent(hConfirmEvent);
 			break;
 		}
@@ -193,7 +192,19 @@ void start()
 		case 3:
 			header h = {0, 0};
 			wstring msg = mapReceive(h);
-			sessions[h.addr]->AddMessage(MT_DATA, msg);
+			if (h.addr == 0)
+			{
+				SafeWriteW(msg);
+			}
+			else if (h.addr == 1)
+			{
+				for (auto s : sessions)
+					s->AddMessage(MT_DATA, msg);
+			}
+			else
+			{
+				sessions[h.addr-1]->AddMessage(MT_DATA, msg);
+			}
 			//SafeWriteW(L"comment: ", msg);
 			SetEvent(hConfirmEvent);
 			break;

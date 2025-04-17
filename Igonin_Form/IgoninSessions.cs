@@ -84,7 +84,7 @@ namespace Igonin_Form
 
 		public void SendMessageToThreat()
 		{
-			if (SelectedThreat == 0)
+			if (SelectedThreat == 1)
 				SendMessage(SelectedThreat, ThreatMessage);
 			else if (SelectedThreat > 1)
 				SendMessage(SelectedThreat - 1, ThreatMessage);
