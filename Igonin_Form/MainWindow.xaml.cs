@@ -13,6 +13,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Igonin_Form;
 
+
 namespace Lab_1_Igonin
 {
 	/// <summary>
@@ -53,11 +54,16 @@ namespace Lab_1_Igonin
 		}
 		private void Button_Send_Message(object sender, RoutedEventArgs e)
 		{
-			Sessions.SendMessageToThreat();
+			Sessions.SendData();
 		}
 		private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
 		{
 			Sessions.CloseSessions();
+		}
+
+		private void Button_Check_Server(object sender, RoutedEventArgs e)
+		{
+			Sessions.CheckServer();
 		}
 	}
 }

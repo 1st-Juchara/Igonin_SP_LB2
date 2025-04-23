@@ -110,14 +110,14 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>D:\U4oba\6_semak\System_Prog\Igonin_SP_LB2\Igonin_MMF_DLL;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <LanguageStandard_C>Default</LanguageStandard_C>
+      <AdditionalIncludeDirectories>D:\U4oba\6_semak\System_Prog\Igonin_SP_LB2\Igonin_MMF_DLL;D:\U4oba\3_Semak\OOP\boost_1_86_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>D:\U4oba\6_semak\System_Prog\Igonin_SP_LB2\x64\Debug\net8.0-windows</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>D:\U4oba\6_semak\System_Prog\Igonin_SP_LB2\x64\Debug\net8.0-windows;D:\U4oba\3_Semak\OOP\boost_1_86_0\stage\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);Igonin_MMF_DLL.lib;</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -139,8 +139,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Igonin_LB1.cpp" />
+    <ClCompile Include="Message_D.cpp" />
+    <ClCompile Include="ServerSession.cpp" />
+    <ClCompile Include="Source.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Message_D.h" />
+    <ClInclude Include="ServerSession.h" />
     <ClInclude Include="SysProg.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

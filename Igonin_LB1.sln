@@ -4,6 +4,10 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.12.35506.116
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Igonin_LB1", "Igonin_LB1\Igonin_LB1.vcxproj", "{3A3271B7-1678-45FC-9E72-16338BF4F7A7}"
+	ProjectSection(ProjectDependencies) = postProject
+		{60B00274-FEDD-4F23-8F04-FB643E9D7876} = {60B00274-FEDD-4F23-8F04-FB643E9D7876}
+		{DBF9C80A-88B9-44B4-BB2B-42D543C9A836} = {DBF9C80A-88B9-44B4-BB2B-42D543C9A836}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Igonin_Form", "Igonin_Form\Igonin_Form.csproj", "{DBF9C80A-88B9-44B4-BB2B-42D543C9A836}"
 EndProject

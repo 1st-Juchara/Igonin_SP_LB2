@@ -44,6 +44,9 @@
                 <Button Height="40" Width="80"
                         Content="Send message"
                         Click="Button_Send_Message"/>
+                <Button Height="40" Width="80"
+                        Content="CHECK SERVER"
+                        Click="Button_Check_Server"/>
             </StackPanel>
             <StackPanel Width="150" Margin="10,0,0,0">
                 <ListView Height="150" 

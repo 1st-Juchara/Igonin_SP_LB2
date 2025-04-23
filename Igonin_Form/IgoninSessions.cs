@@ -11,15 +11,22 @@ namespace Igonin_Form
 {
 	internal class IgoninSessions : ViewModelBase
 	{
+		public enum MessageCommands
+		{
+			MT_START = 0,
+			MT_STOP = 1,
+			MT_DATA = 2,
+			MT_EXIT = 3
+		};
 
 		[DllImport("Igonin_MMF_DLL.dll", CharSet = CharSet.Unicode)]
-		public static extern void mapSend(int inx, string msg);
+		public static extern void mapSend(int inx, int command, string msg);
 
 		Process childProcess = null;
-		System.Threading.EventWaitHandle stopEvent = new EventWaitHandle(false, EventResetMode.AutoReset, "StopEvent");
-		System.Threading.EventWaitHandle startEvent = new EventWaitHandle(false, EventResetMode.AutoReset, "StartEvent");
+		//System.Threading.EventWaitHandle stopEvent = new EventWaitHandle(false, EventResetMode.AutoReset, "StopEvent");
+		//System.Threading.EventWaitHandle startEvent = new EventWaitHandle(false, EventResetMode.AutoReset, "StartEvent");
 		System.Threading.EventWaitHandle confirmEvent = new EventWaitHandle(false, EventResetMode.AutoReset, "ConfirmEvent");
-		System.Threading.EventWaitHandle closeEvent = new EventWaitHandle(false, EventResetMode.AutoReset, "CloseEvent");
+		//System.Threading.EventWaitHandle closeEvent = new EventWaitHandle(false, EventResetMode.AutoReset, "CloseEvent");
 		System.Threading.EventWaitHandle messageEvent = new EventWaitHandle(false, EventResetMode.AutoReset, "MessageEvent");
 
 		public ObservableCollection<string> Sessions { get; set; } = new ObservableCollection<string>();
@@ -35,8 +42,6 @@ namespace Igonin_Form
 		int selectedThreat = -1;
 		public int SelectedThreat { get => selectedThreat; set => Set(ref selectedThreat, value); }
 
-		
-
 		public void StartSession()
 		{
 			if (childProcess == null || childProcess.HasExited) {
@@ -47,7 +52,7 @@ namespace Igonin_Form
 				//add "sessionsCount" sessions
 			} else {
 				for (int i = 0; i < SessionsCount; i++) {
-					startEvent.Set();
+					SendMessage(0, 0);
 					confirmEvent.WaitOne();
 					Sessions.Add($"Поток № {++sNumber}");
 				}
@@ -58,7 +63,7 @@ namespace Igonin_Form
 		public void StopSession()
 		{
 			if (!(childProcess == null || childProcess.HasExited || (sNumber == 0))) {
-				stopEvent.Set();
+				SendMessage(0, 1);
 				confirmEvent.WaitOne();
 				sNumber -= 1;
 				Sessions.RemoveAt(sNumber + 2);
@@ -70,24 +75,33 @@ namespace Igonin_Form
 
 		public void CloseSessions()
 		{
-			closeEvent.Set();
+			SendMessage(0, 3);
 		}
 
-		private void SendMessage(int inx, string message)
+		private void SendMessage(int inx, int command, string message = "")
 		{
-			if (!(childProcess == null || childProcess.HasExited || (sNumber == 0) || (string.IsNullOrEmpty(message)))) {
-				mapSend(inx, message);
-				messageEvent.Set();
-				confirmEvent.WaitOne();
-			}
+			//DEBUG
+			mapSend(inx, command, message);
+			//
+			messageEvent.Set();
 		}
 
-		public void SendMessageToThreat()
+		public void SendData()
 		{
-			if (SelectedThreat == 1)
-				SendMessage(SelectedThreat, ThreatMessage);
-			else if (SelectedThreat > 1)
-				SendMessage(SelectedThreat - 1, ThreatMessage);
+			if (!string.IsNullOrEmpty(ThreatMessage))
+				if (SelectedThreat == 1)
+					SendMessage(SelectedThreat, 2, ThreatMessage);
+				else if (SelectedThreat > 1)
+					SendMessage(SelectedThreat, 2, ThreatMessage);
+		}
+
+		//DEBUG
+		public void CheckServer()
+		{
+			//var m = Message.send(2, MessageTypes.MT_INIT);
+			var m = Message.send(10, MessageTypes.MT_INIT);
+			MessageTypes msg = Message.receive(m); 
+			ThreatMessage = msg.ToString();
 		}
 	}
 }

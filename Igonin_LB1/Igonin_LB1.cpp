@@ -1,4 +1,4 @@
-﻿
+﻿/*
 #include "SysProg.h"
 
 using namespace std;
@@ -28,8 +28,8 @@ bool saveWstringToFile(const string& filePath, const wstring& content) {
 
 enum MessageTypes
 {
-	MT_CLOSE,
-	MT_DATA,
+	MT_M_CLOSE,
+	MT_M_DATA,
 };
 
 struct MessageHeader
@@ -50,13 +50,7 @@ struct Message
 	}
 };
 
-//struct header
-//{
-//	int addr;
-//	int size;
-//};
-
-class Session
+class M_Session
 {
 	queue<Message> messages;
 	CRITICAL_SECTION cs;
@@ -64,13 +58,13 @@ class Session
 public:
 	int sessionID;
 
-	Session(int sessionID) :sessionID(sessionID)
+	M_Session(int sessionID) :sessionID(sessionID)
 	{
 		InitializeCriticalSection(&cs);
 		hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
 	}
 
-	~Session()
+	~M_Session()
 	{
 		DeleteCriticalSection(&cs);
 		CloseHandle(hEvent);
@@ -112,7 +106,7 @@ public:
 
 DWORD WINAPI MyThread(LPVOID lpParameter)
 {
-	auto session = static_cast<Session*>(lpParameter);
+	auto session = static_cast<M_Session*>(lpParameter);
 	SafeWrite("session", session->sessionID, "created");
 	while (true)
 	{
@@ -121,17 +115,15 @@ DWORD WINAPI MyThread(LPVOID lpParameter)
 		{
 			switch (m.header.messageType)
 			{
-			case MT_CLOSE:
+			case MT_M_CLOSE:
 			{
 				SafeWrite("session", session->sessionID, "closed");
 				delete session;
 				return 0;
 			}
-			case MT_DATA:
+			case MT_M_DATA:
 			{
 				SafeWriteW(L"session", session->sessionID, L"data", m.data);
-				//Sleep(500 * session->sessionID);
-				//Write to file
 				if (!saveWstringToFile(format("message_{}.txt", session->sessionID), m.data))
 					SafeWriteW(L"session", session->sessionID, L"data error");
 				break;
@@ -144,29 +136,24 @@ DWORD WINAPI MyThread(LPVOID lpParameter)
 
 void start()
 {
-    vector<Session*> sessions;
-    //vector<HANDLE> threads;
+    vector<M_Session*> sessions;
     InitializeCriticalSection(&cs);
     int i = 1;
 
-    HANDLE hStartEvent = CreateEvent(NULL, FALSE, FALSE, "StartEvent");
-    HANDLE hStopEvent = CreateEvent(NULL, FALSE, FALSE, "StopEvent");
     HANDLE hConfirmEvent = CreateEvent(NULL, FALSE, FALSE, "ConfirmEvent");
-	//sam pisal
-	HANDLE hCloseEvent = CreateEvent(NULL, FALSE, FALSE, "CloseEvent");
+
 	HANDLE hMessageEvent = CreateEvent(NULL, FALSE, FALSE, "MessageEvent");
-    //
-	HANDLE hControlEvents[4] = { hStartEvent, hStopEvent, hCloseEvent, hMessageEvent };
-	//sam pisal
-    while (i)
-    {
-        int n = WaitForMultipleObjects(4, hControlEvents, FALSE, INFINITE) - WAIT_OBJECT_0;
-        switch (n)
+
+	while (i)
+	{
+		WaitForSingleObject(hMessageEvent, INFINITE);
+		header h = { 0, 0, 0 };
+		wstring msg = mapReceive(h);
+        switch (h.command)
         {
         case 0:
 		{
-			sessions.push_back(new Session(i++));
-			//threads.push_back(CreateThread(NULL, 0, MyThread, (LPVOID)sessions.back(), 0, NULL));
+			sessions.push_back(new M_Session(i++));
 			thread t(MyThread, (LPVOID)sessions.back());
 			t.detach();
 			SetEvent(hConfirmEvent);
@@ -174,12 +161,9 @@ void start()
 		}
         case 1:
 		{
-			sessions.back()->AddMessage(MT_CLOSE);
-			//WaitForSingleObject(threads.back(), INFINITE);
-			//shared_lock<shared_mutex> ul(evMutex); // !!!NEW!!! !!!NEW!!! !!!NEW!!! !!!NEW!!! !!!NEW!!! !!!NEW!!! !!!NEW!!! !!!NEW!!!
+			sessions.back()->AddMessage(MT_M_CLOSE);
 			
 			sessions.pop_back();
-			//threads.pop_back();
 			i--;
 			SetEvent(hConfirmEvent);
 			if (i == 1)
@@ -187,11 +171,7 @@ void start()
 			break;
 		}
 		case 2:
-			return;
-			break;
-		case 3:
-			header h = {0, 0};
-			wstring msg = mapReceive(h);
+		{
 			if (h.addr == 0)
 			{
 				SafeWriteW(msg);
@@ -199,15 +179,23 @@ void start()
 			else if (h.addr == 1)
 			{
 				for (auto s : sessions)
-					s->AddMessage(MT_DATA, msg);
+					s->AddMessage(MT_M_DATA, msg);
 			}
 			else
 			{
-				sessions[h.addr-1]->AddMessage(MT_DATA, msg);
+				sessions[h.addr - 2]->AddMessage(MT_M_DATA, msg);
 			}
-			//SafeWriteW(L"comment: ", msg);
 			SetEvent(hConfirmEvent);
 			break;
+
+		}
+		case 3:
+		{
+			return;
+			break;
+		}
+		default:
+			SafeWriteW(L"SC ERROR");
         }
     }
 	//
@@ -221,3 +209,4 @@ int main()
     start();
     return 0;
 }
+*/
