@@ -12,11 +12,12 @@ namespace Igonin_Form
 	public enum MessageTypes : int
 	{
 		MT_INIT,
-		MT_EXIT,
+		MT_CLOSE,
 		MT_GETDATA,
 		MT_DATA,
 		MT_NODATA,
-		MT_CONFIRM
+		MT_CONFIRM,
+		MT_EXIT
 	};
 
 
@@ -107,19 +108,6 @@ namespace Igonin_Form
 			var m = new Message(to, type, data);
 			m.send(s);
 			return m;
-		}
-
-		public static MessageTypes receive(Message m)
-		{
-			int nPort = 12345;
-			IPEndPoint endPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), nPort);
-			Socket s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-			s.Connect(endPoint);
-			if (!s.Connected) {
-				throw new Exception("Connection error");
-			}
-
-			return m.receive(s);
 		}
 	}
 

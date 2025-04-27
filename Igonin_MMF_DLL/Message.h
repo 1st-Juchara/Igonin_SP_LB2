@@ -2,14 +2,21 @@
 #include "asio.h"
 //#include "Messager.h"
 
-enum MessageTypes2
+#ifdef IGONIN_DLL_EXPORTS
+#define IGONIN_DLL_API __declspec(dllexport)
+#else
+#define IGONIN_DLL_API __declspec(dllimport)
+#endif
+
+IGONIN_DLL_API enum MessageTypes
 {
 	MT_INIT,
-	MT_EXIT,
+	MT_CLOSE,
 	MT_GETDATA,
 	MT_DATA,
 	MT_NODATA,
-	MT_CONFIRM
+	MT_CONFIRM,
+	MT_EXIT
 };
 
 //enum MessageRecipients
@@ -19,7 +26,7 @@ enum MessageTypes2
 //	MR_USER = 100
 //};
 
-struct MessageHeader2
+IGONIN_DLL_API struct MessageHeader
 {
 	int to;
 	int type;
@@ -27,14 +34,14 @@ struct MessageHeader2
 };
 
 
-class MessageServer
+IGONIN_DLL_API class Message
 {
 public:
-	MessageHeader2 header = { 0 };
+	MessageHeader header = { 0 };
 	wstring data;
 
-	MessageServer() {}
-	MessageServer(int to, int type = MT_DATA, const wstring& data = L"")
+	Message() {}
+	Message(int to, int type = MT_DATA, const wstring& data = L"")
 	{
 		this->data = data;
 		header = { to, type, int(data.length() * sizeof(wchar_t)) };
@@ -60,7 +67,7 @@ public:
 		return header.type;
 	}
 
-	static void send(tcp::socket& s, int to, int type = MT_DATA, const wstring& data = L"");
+	IGONIN_DLL_API static void send(tcp::socket& s, int to, int type = MT_DATA, const wstring& data = L"");
 
-	static MessageServer send(int to, int type = MT_DATA, const wstring& data = L"");
+	IGONIN_DLL_API static Message send(int to, int type = MT_DATA, const wstring& data = L"");
 };

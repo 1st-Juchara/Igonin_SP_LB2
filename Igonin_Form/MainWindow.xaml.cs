@@ -60,10 +60,5 @@ namespace Lab_1_Igonin
 		{
 			Sessions.CloseSessions();
 		}
-
-		private void Button_Check_Server(object sender, RoutedEventArgs e)
-		{
-			Sessions.CheckServer();
-		}
 	}
 }

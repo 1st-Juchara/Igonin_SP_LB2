@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Message.h"
 #include "ServerSession.h"
+#include "Message.h"
 
 #include <windows.h>
 #include <conio.h>

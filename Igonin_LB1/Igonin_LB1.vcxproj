@@ -139,12 +139,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Igonin_LB1.cpp" />
-    <ClCompile Include="Message_D.cpp" />
     <ClCompile Include="ServerSession.cpp" />
     <ClCompile Include="Source.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Message_D.h" />
     <ClInclude Include="ServerSession.h" />
     <ClInclude Include="SysProg.h" />
   </ItemGroup>

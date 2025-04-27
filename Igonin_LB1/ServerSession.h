@@ -1,3 +1,4 @@
+/*
 #pragma once
 #include "Message.h"
 
@@ -6,7 +7,7 @@ class Session
 public:
 	int id;
 	wstring name;
-	queue<MessageServer> messages;
+	queue<Message> messages;
 
 	mutex mx;
 	Session(int id, wstring name)
@@ -14,7 +15,7 @@ public:
 	{
 	}
 
-	void add(MessageServer& m)
+	void add(Message& m)
 	{
 		lock_guard<mutex> lg(mx);
 		messages.push(m);
@@ -25,7 +26,7 @@ public:
 		lock_guard<mutex> lg(mx);
 		if (messages.empty())
 		{
-			MessageServer::send(s, id, MT_NODATA);
+			Message::send(s, id, MT_NODATA);
 		}
 		else
 		{
@@ -34,3 +35,4 @@ public:
 		}
 	}
 };
+*/
