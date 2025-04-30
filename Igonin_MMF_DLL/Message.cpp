@@ -7,6 +7,7 @@ IGONIN_DLL_API void Message::send(tcp::socket& s, int to, int type, const wstrin
 	m.send(s);
 }
 
+//с предустановленным сокетом
 IGONIN_DLL_API Message Message::send(int to, int type, const wstring& data)
 {
 	boost::asio::io_context io;

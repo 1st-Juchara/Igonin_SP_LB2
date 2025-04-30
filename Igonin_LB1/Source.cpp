@@ -83,6 +83,14 @@ public:
 		Message m(to, messageType, data);
 		AddMessage(m);
 	}
+
+	void SendMessage(tcp::socket &s, int to, MessageTypes messageType, const wstring& data = L"")
+	{
+		EnterCriticalSection(&cs);
+		Message m(to, messageType, data);
+		m.send(s);
+		LeaveCriticalSection(&cs);
+	}
 };
 
 vector<M_Session*> sessions;
@@ -125,31 +133,22 @@ void processClient(tcp::socket s)
 	try
 	{
 		Message m;
+		sessionsMutex.lock();
 		int code = m.receive(s);
 		switch (code)
 		{
 			case MT_INIT:
 			{
-				unique_lock<mutex> lock(sessionsMutex);
 				sessions.push_back(new M_Session(++max_ID));
 				thread t(MyThread, (LPVOID)sessions.back());
 				t.detach();
 				break;
-
-				//unique_lock<mutex> lock(sessionsMutex);
-				//auto session = make_shared<Session>(max_ID++,m.data);
-				//thread t(MyThread, (LPVOID)sessions.back());
-				//t.detach();
-				//sessions[session->id] = session;
-				//Message::send(s, session->id, MT_INIT);
-				//break;
 			}
 			case MT_CLOSE:
 			{
-				if (max_ID > 0)
+				if (sessions.size())
 				{
 					sessions.back()->AddMessage(m.header.to, MT_CLOSE);
-
 					sessions.pop_back();
 					max_ID--;
 				}
@@ -157,15 +156,15 @@ void processClient(tcp::socket s)
 			}
 			case MT_GETDATA:
 			{
-				unique_lock<mutex> lock(sessionsMutex);
-
-				MessageHeader responseHeader;
-				responseHeader.type = MT_GETDATA;
-				responseHeader.to = -1;
-				responseHeader.size = sizeof(int);
-
-				sendData(s, &responseHeader, sizeof(responseHeader));
-				sendData(s, &max_ID, sizeof(int));
+				if (sessions.size())
+				{
+					sessions.back()->SendMessage(s, -1, MT_GETDATA, to_wstring(max_ID));
+				}
+				else
+				{
+					Message msg = Message(-1, MT_GETDATA, to_wstring(max_ID));
+					msg.send(s);
+				}
 				break;
 			}
 			case MT_DATA:
@@ -187,22 +186,6 @@ void processClient(tcp::socket s)
 			}
 			default:
 			{
-				//cout << "CLIENT IS EXIT (-_o)" << endl;
-				//auto iSessionTo = sessions.find(m.header.to);
-				//if (iSessionTo == sessions.end())
-				//{
-				//	iSessionTo->second->add(m);
-				//}
-				//else if (m.header.to == 0)
-				//{
-				//	for (auto& [id, session] : sessions)
-				//	{
-				//		if (id != m.header.to)
-				//			session->add(m);
-				//	}
-				//}
-				//Message::send(s, m.header.to, MT_CONFIRM);
-				
 				break;
 			}
 		}
@@ -211,6 +194,7 @@ void processClient(tcp::socket s)
 	{
 		std::wcerr << "Exception: " << e.what() << endl;
 	}
+	sessionsMutex.unlock();
 }
 
 

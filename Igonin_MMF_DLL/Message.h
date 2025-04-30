@@ -1,6 +1,5 @@
 #pragma once
 #include "asio.h"
-//#include "Messager.h"
 
 #ifdef IGONIN_DLL_EXPORTS
 #define IGONIN_DLL_API __declspec(dllexport)
@@ -18,13 +17,6 @@ IGONIN_DLL_API enum MessageTypes
 	MT_CONFIRM,
 	MT_EXIT
 };
-
-//enum MessageRecipients
-//{
-//	MR_BROKER = 10,
-//	MR_ALL = 50,
-//	MR_USER = 100
-//};
 
 IGONIN_DLL_API struct MessageHeader
 {
@@ -56,6 +48,18 @@ public:
 		}
 	}
 
+	void send()
+	{
+		boost::asio::io_context io;
+		tcp::socket s(io);
+		tcp::resolver r(io);
+		boost::asio::connect(s, r.resolve("127.0.0.1", "12345"));
+
+		this->send(s);
+	}
+
+	//можно было бы сделать receive по подобию send статическим, но в примере он
+	//здесь, так что я не менял
 	int receive(tcp::socket& s)
 	{
 		receiveData(s, &header);

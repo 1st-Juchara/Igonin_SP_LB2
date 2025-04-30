@@ -13,29 +13,22 @@ namespace Igonin_Form
 {
 	internal class IgoninSessions : ViewModelBase
 	{
-		//public enum MessageCommands
-		//{
-		//	MT_START = 0,
-		//	MT_STOP = 1,
-		//	MT_DATA = 2,
-		//	MT_EXIT = 3
-		//};
-
-		//[DllImport("Igonin_MMF_DLL.dll", CharSet = CharSet.Unicode)]
-		//public static extern void mapSend(int inx, int command, string msg);
+		public enum MessageTypes : int
+		{
+			MT_INIT,
+			MT_CLOSE,
+			MT_GETDATA,
+			MT_DATA,
+			MT_NODATA,
+			MT_CONFIRM,
+			MT_EXIT
+		};
 
 		[DllImport("Igonin_MMF_DLL.dll", CharSet = CharSet.Unicode)]
 		public static extern int getSessionCount();
 
 		[DllImport("Igonin_MMF_DLL.dll", CharSet = CharSet.Unicode)]
 		public static extern void sendCommand(int inx, MessageTypes command, string msg="");
-
-		//Process childProcess = null;
-		//System.Threading.EventWaitHandle stopEvent = new EventWaitHandle(false, EventResetMode.AutoReset, "StopEvent");
-		//System.Threading.EventWaitHandle startEvent = new EventWaitHandle(false, EventResetMode.AutoReset, "StartEvent");
-		//System.Threading.EventWaitHandle confirmEvent = new EventWaitHandle(false, EventResetMode.AutoReset, "ConfirmEvent");
-		//System.Threading.EventWaitHandle closeEvent = new EventWaitHandle(false, EventResetMode.AutoReset, "CloseEvent");
-		//System.Threading.EventWaitHandle messageEvent = new EventWaitHandle(false, EventResetMode.AutoReset, "MessageEvent");
 
 		public ObservableCollection<string> Sessions { get; set; } = new ObservableCollection<string>();
 		
@@ -64,19 +57,6 @@ namespace Igonin_Form
 
 		public void StartSession()
 		{
-			//if (childProcess == null || childProcess.HasExited) {
-			//	childProcess = Process.Start("Igonin_LB1.exe");
-			//	Sessions.Clear();
-			//	Sessions.Add("Главный поток");
-			//	Sessions.Add("Все потоки");
-			//	//add "sessionsCount" sessions
-			//} else {
-			//	for (int i = 0; i < SessionsCount; i++) {
-			//		SendMessage(0, 0);
-			//		confirmEvent.WaitOne();
-			//		Sessions.Add($"Поток № {++sNumber}");
-			//	}
-			//}
 			for (int i = 0; i < SessionsCount; i++) {
 				sendCommand(0, MessageTypes.MT_INIT, "");
 			}
@@ -84,9 +64,7 @@ namespace Igonin_Form
 
 		public void StopSession()
 		{
-			if (sNumber > 0) {
-				sendCommand(SelectedThreat, MessageTypes.MT_CLOSE);
-			}
+			sendCommand(SelectedThreat, MessageTypes.MT_CLOSE);
 		}
 
 		public void CloseSessions()
@@ -100,12 +78,8 @@ namespace Igonin_Form
 				sendCommand(SelectedThreat, MessageTypes.MT_DATA, ThreatMessage);
 		}
 
-		//DEBUG
 		public void CheckServer(object? sender, EventArgs e)
 		{
-			//var m = Message.send(2, MessageTypes.MT_INIT);
-			//var m = Message.send(10, MessageTypes.MT_INIT);
-			//sendCommand(10, MessageTypes.MT_INIT, "ABUBA");
 			ticks += 1;
 			int cnt = getSessionCount();
 			if (cnt != sNumber)

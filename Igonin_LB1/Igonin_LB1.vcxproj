@@ -138,7 +138,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Igonin_LB1.cpp" />
     <ClCompile Include="ServerSession.cpp" />
     <ClCompile Include="Source.cpp" />
   </ItemGroup>
