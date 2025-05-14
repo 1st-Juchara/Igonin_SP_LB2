@@ -25,10 +25,10 @@ namespace Igonin_Form
 		};
 
 		[DllImport("Igonin_MMF_DLL.dll", CharSet = CharSet.Unicode)]
-		public static extern int getSessionCount();
+		public static extern int getSessionCount(int from);
 
 		[DllImport("Igonin_MMF_DLL.dll", CharSet = CharSet.Unicode)]
-		public static extern void sendCommand(int inx, MessageTypes command, string msg="");
+		public static extern void sendCommand(int from, int to, MessageTypes command, string msg="");
 
 		public ObservableCollection<string> Sessions { get; set; } = new ObservableCollection<string>();
 		
@@ -47,6 +47,8 @@ namespace Igonin_Form
 
 		int ticks = 0;
 
+		int clientID = 0;
+
 		public IgoninSessions()
 		{
 			timer = new DispatcherTimer();
@@ -58,30 +60,30 @@ namespace Igonin_Form
 		public void StartSession()
 		{
 			for (int i = 0; i < SessionsCount; i++) {
-				sendCommand(0, MessageTypes.MT_INIT, "");
+				sendCommand(clientID, 0, MessageTypes.MT_INIT, "");
 			}
 		}
 
 		public void StopSession()
 		{
-			sendCommand(SelectedThreat, MessageTypes.MT_CLOSE);
+			sendCommand(clientID, SelectedThreat, MessageTypes.MT_CLOSE);
 		}
 
 		public void CloseSessions()
 		{
-			sendCommand(-1, MessageTypes.MT_EXIT);
+			sendCommand(clientID, -1, MessageTypes.MT_EXIT);
 		}
 
 		public void SendData()
 		{
 			if (!string.IsNullOrEmpty(ThreatMessage) && (SelectedThreat >= 0))
-				sendCommand(SelectedThreat, MessageTypes.MT_DATA, ThreatMessage);
+				sendCommand(11, SelectedThreat, MessageTypes.MT_DATA, ThreatMessage);
 		}
 
 		public void CheckServer(object? sender, EventArgs e)
 		{
 			ticks += 1;
-			int cnt = getSessionCount();
+			int cnt = getSessionCount(clientID);
 			if (cnt != sNumber)
 				UpdateSessions(cnt);
 		}

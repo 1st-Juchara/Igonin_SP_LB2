@@ -7,6 +7,6 @@
 
 using namespace std;
 
-extern "C" IGONIN_DLL_API void sendCommand(int addr, int command, const wchar_t* str);
+extern "C" IGONIN_DLL_API void sendCommand(int from, int to, int command, const wchar_t* str);
 
-extern "C" IGONIN_DLL_API int __stdcall getSessionCount();
+extern "C" IGONIN_DLL_API int getSessionCount(int from);

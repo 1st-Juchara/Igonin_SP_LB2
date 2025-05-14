@@ -1,6 +1,5 @@
 #pragma once
 
-#include "ServerSession.h"
 #include "Message.h"
 
 #include <windows.h>

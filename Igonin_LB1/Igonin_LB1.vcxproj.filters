@@ -18,15 +18,9 @@
     <ClCompile Include="Source.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="ServerSession.cpp">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SysProg.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="ServerSession.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>

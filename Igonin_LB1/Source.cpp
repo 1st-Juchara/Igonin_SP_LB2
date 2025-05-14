@@ -78,16 +78,16 @@ public:
 		return res;
 	}
 
-	void AddMessage(int to, MessageTypes messageType, const wstring& data = L"")
+	void AddMessage(int from, int to, MessageTypes messageType, const wstring& data = L"")
 	{
-		Message m(to, messageType, data);
+		Message m(from, to, messageType, data);
 		AddMessage(m);
 	}
 
-	void SendMessage(tcp::socket &s, int to, MessageTypes messageType, const wstring& data = L"")
+	void SendMessage(tcp::socket &s, int from, int to, MessageTypes messageType, const wstring& data = L"")
 	{
 		EnterCriticalSection(&cs);
-		Message m(to, messageType, data);
+		Message m(from, to, messageType, data);
 		m.send(s);
 		LeaveCriticalSection(&cs);
 	}
@@ -135,6 +135,8 @@ void processClient(tcp::socket s)
 		Message m;
 		sessionsMutex.lock();
 		int code = m.receive(s);
+		//SafeWriteW(L"Начало процесса");
+		//SafeWriteW(L"From: ", m.header.from, L"To: ", m.header.to, L"Type: ", m.header.type);
 		switch (code)
 		{
 			case MT_INIT:
@@ -148,7 +150,7 @@ void processClient(tcp::socket s)
 			{
 				if (sessions.size())
 				{
-					sessions.back()->AddMessage(m.header.to, MT_CLOSE);
+					sessions.back()->AddMessage(m.header.from, m.header.to, MT_CLOSE);
 					sessions.pop_back();
 					max_ID--;
 				}
@@ -158,14 +160,15 @@ void processClient(tcp::socket s)
 			{
 				if (sessions.size())
 				{
-					sessions.back()->SendMessage(s, -1, MT_GETDATA, to_wstring(max_ID));
+					sessions.back()->SendMessage(s, m.header.from, -1, MT_GETDATA, to_wstring(max_ID));
 				}
 				else
 				{
-					Message msg = Message(-1, MT_GETDATA, to_wstring(max_ID));
+					Message msg = Message(m.header.from, -1, MT_GETDATA, to_wstring(max_ID));
 					msg.send(s);
 				}
 				break;
+				
 			}
 			case MT_DATA:
 			{
@@ -176,11 +179,11 @@ void processClient(tcp::socket s)
 				else if (m.header.to == 1)
 				{
 					for (auto s : sessions)
-						s->AddMessage(m.header.to, MT_DATA, m.data);
+						s->AddMessage(m.header.from, m.header.to, MT_DATA, m.data);
 				}
 				else
 				{
-					sessions[m.header.to - 2]->AddMessage(m.header.to, MT_DATA, m.data);
+					sessions[m.header.to - 2]->AddMessage(m.header.from, m.header.to, MT_DATA, m.data);
 				}
 				break;
 			}
@@ -210,7 +213,7 @@ int main()
 		int port = 12345;
 		boost::asio::io_context io;
 		tcp::acceptor a(io, tcp::endpoint(tcp::v4(), port));
-		for (int i = 0; i < 3; i++)
+		for (int i = 0; i < 2; i++)
 			launchClient("Igonin_Form.exe");
 
 		while (true)

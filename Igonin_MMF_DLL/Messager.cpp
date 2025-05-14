@@ -4,17 +4,17 @@
 HANDLE hMutex = CreateMutex(NULL, FALSE, L"Global\\MMF_Mutex"); // <-- добавляем глобальный мьютекс
 
 extern "C" {
-    IGONIN_DLL_API void sendCommand(int selected_thread, int commandId, const wchar_t* message)
+    IGONIN_DLL_API void sendCommand(int from, int to, int commandId, const wchar_t* message)
     {
         try {
-            Message::send(selected_thread, commandId, message);
+            Message::send(from, to, commandId, message);
         }
         catch (const std::exception& e) {
             std::wcerr << L"[DLL] Невозможно отправить команду: " << e.what() << std::endl;
         }
     }
 
-    IGONIN_DLL_API int getSessionCount()
+    IGONIN_DLL_API int getSessionCount(int from)
     {
         try {
             boost::asio::io_context io;
@@ -23,7 +23,7 @@ extern "C" {
             auto endpoints = resolver.resolve("127.0.0.1", "12345");
             boost::asio::connect(socket, endpoints);
 
-            Message msg = Message(-1, MT_GETDATA);
+            Message msg = Message(from, -1, MT_GETDATA);
             msg.send(socket);
             msg.receive(socket);
 

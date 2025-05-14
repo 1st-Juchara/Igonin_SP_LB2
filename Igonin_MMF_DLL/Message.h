@@ -20,23 +20,29 @@ IGONIN_DLL_API enum MessageTypes
 
 IGONIN_DLL_API struct MessageHeader
 {
+	int from;
 	int to;
 	int type;
 	int size;
 };
 
+IGONIN_DLL_API struct MessageData {
+	MessageHeader header;
+	wstring data;
+};
 
 IGONIN_DLL_API class Message
 {
 public:
+
 	MessageHeader header = { 0 };
 	wstring data;
 
 	Message() {}
-	Message(int to, int type = MT_DATA, const wstring& data = L"")
+	Message(int from, int to, int type = MT_DATA, const wstring& data = L"")
 	{
 		this->data = data;
-		header = { to, type, int(data.length() * sizeof(wchar_t)) };
+		header = { from, to, type, int(data.length() * sizeof(wchar_t)) };
 	}
 
 	void send(tcp::socket& s)
@@ -46,16 +52,6 @@ public:
 		{
 			sendData(s, data.c_str(), header.size);
 		}
-	}
-
-	void send()
-	{
-		boost::asio::io_context io;
-		tcp::socket s(io);
-		tcp::resolver r(io);
-		boost::asio::connect(s, r.resolve("127.0.0.1", "12345"));
-
-		this->send(s);
 	}
 
 	//можно было бы сделать receive по подобию send статическим, но в примере он
@@ -71,7 +67,7 @@ public:
 		return header.type;
 	}
 
-	IGONIN_DLL_API static void send(tcp::socket& s, int to, int type = MT_DATA, const wstring& data = L"");
+	IGONIN_DLL_API static void send(tcp::socket& s, int from, int to, int type = MT_DATA, const wstring& data = L"");
 
-	IGONIN_DLL_API static Message send(int to, int type = MT_DATA, const wstring& data = L"");
+	IGONIN_DLL_API static Message send(int from, int to, int type = MT_DATA, const wstring& data = L"");
 };
