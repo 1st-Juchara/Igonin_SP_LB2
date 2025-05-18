@@ -36,7 +36,9 @@ class M_Session
 	queue<Message> messages;
 	CRITICAL_SECTION cs;
 	HANDLE hEvent;
+
 public:
+	chrono::steady_clock::time_point lastCall;
 	queue<Message> messagesToSend;
 	int sessionID;
 
@@ -107,10 +109,29 @@ public:
 	}
 };
 
-vector<M_Session*> sessions;
-vector<int> ClientsID;
+//vector<M_Session*> sessions;
+map<int, M_Session*> sessions;
 mutex sessionsMutex;
 int max_ID = 0;
+
+void CheckLastCall(int delay_ms, int ID)
+{
+	auto lastCall = sessions[ID]->lastCall;
+	auto thisTime = chrono::steady_clock::now();
+	auto deltaTime = chrono::duration_cast<chrono::milliseconds>(thisTime - lastCall);
+	if (deltaTime.count() > 1000)
+	{
+		sessions[ID]->AddMessage(ID, ID, MT_CLOSE);
+		sessions.erase(ID);
+	}
+}
+
+void CheckTimer(int delay_ms, int ID) {
+	std::async(std::launch::async, [delay_ms, ID]() {
+		std::this_thread::sleep_for(std::chrono::milliseconds(delay_ms));
+		CheckLastCall(delay_ms, ID);
+		});
+}
 
 DWORD WINAPI MyThread(LPVOID lpParameter)
 {
@@ -150,29 +171,32 @@ void processClient(tcp::socket s)
 		Message m;
 		sessionsMutex.lock();
 		int code = m.receive(s);
+		//if (m.header.from > 0)
+		//{
+		//	sessions[m.header.from]->lastCall = chrono::steady_clock::now();
+		//	CheckTimer(2000, m.header.from);
+		//}
 		//SafeWriteW(L"Начало процесса");
 		//SafeWriteW(L"From: ", m.header.from, L"To: ", m.header.to, L"Type: ", m.header.type);
 		switch (code)
 		{
 			case MT_INIT:
 			{
-
-				sessions.push_back(new M_Session(++max_ID));
-				ClientsID.push_back(max_ID);
+				max_ID += 1;
+				sessions[max_ID] = new M_Session(max_ID);
 				SafeWriteW("Session ", max_ID, " init");
 
-				thread t(MyThread, (LPVOID)sessions.back());
+				thread t(MyThread, (LPVOID)sessions[max_ID]);
 				t.detach();
-				sessions.back()->SendMessage(s, m.header.from, max_ID, MT_INIT);
+				sessions[max_ID]->SendMessage(s, m.header.from, max_ID, MT_INIT);
 				break;
 			}
 			case MT_CLOSE:
 			{
 				if (sessions.size())
 				{
-					sessions.back()->AddMessage(m.header.from, m.header.to, MT_CLOSE);
-					sessions.pop_back();
-					ClientsID.erase(ClientsID.begin() + m.header.from - 1);
+					sessions[m.header.from]->AddMessage(m.header.from, m.header.to, MT_CLOSE);
+					sessions.erase(m.header.from);
 				}
 				break;
 			}
@@ -180,19 +204,19 @@ void processClient(tcp::socket s)
 			{
 				if (sessions.size())
 				{
-					if (sessions[m.header.from - 1]->messagesToSend.empty())
+					if (sessions[m.header.from]->messagesToSend.empty())
 					{
 						wstring IDs = L"";
-						for (int id : ClientsID)
+						for (auto session : sessions)
 						{
-							IDs += to_wstring(id) + L' ';
+							IDs += to_wstring(session.first) + L' ';
 						}
-						sessions[m.header.from - 1]->SendMessage(s, m.header.from, -1, MT_GETDATA, IDs);
+						sessions[m.header.from]->SendMessage(s, m.header.from, -1, MT_GETDATA, IDs);
 					}
 					else
 					{
-						sessions[m.header.from - 1]->messagesToSend.front().send(s);
-						sessions[m.header.from - 1]->messagesToSend.pop();
+						sessions[m.header.from]->messagesToSend.front().send(s);
+						sessions[m.header.from]->messagesToSend.pop();
 						SafeWriteW("Client", m.header.from, "recieve message");
 					}
 				}
@@ -209,11 +233,11 @@ void processClient(tcp::socket s)
 				if (m.header.to == 0)
 				{
 					for (auto s : sessions)
-						s->AddMessageToSend(m.header.from, m.header.to, MT_DATA, m.data);
+						s.second->AddMessageToSend(m.header.from, m.header.to, MT_DATA, m.data);
 				}
 				else
 				{
-					sessions[m.header.to - 1]->AddMessageToSend(m.header.from, m.header.to, MT_DATA, m.data);
+					sessions[m.header.to]->AddMessageToSend(m.header.from, m.header.to, MT_DATA, m.data);
 					SafeWriteW("Message from", m.header.from, " to ", m.header.to, ": ", m.data);
 				}
 				break;
