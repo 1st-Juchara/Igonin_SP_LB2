@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Lab_1_Igonin"
         mc:Ignorable="d"
-        Title="MainWindow" Height="350" Width="400"
+        Title="MainWindow" Height="350" Width="450"
         Closing="Window_Closing">
     <Grid>
         <StackPanel HorizontalAlignment="Center" 
@@ -45,20 +45,33 @@
                 </Button>
             </StackPanel>
             <StackPanel Width="150" Margin="10,0,0,0">
+                <Border Margin="0,0,0,12" BorderBrush="Black" BorderThickness="1">
+                    <TextBlock Background="#ccc" Margin="0,5,0,5"
+                           TextAlignment="Center"
+                           Text="{Binding ClientID}"
+                           MaxWidth="140" Height="20"/>
+                </Border>
                 <ListView Height="150" 
                           BorderBrush="#777" Background="#EEE"
-                          ItemsSource="{Binding Sessions}"
-                          SelectedIndex="{Binding SelectedThreat}">
+                          ItemsSource="{Binding Clients}"
+                          SelectedIndex="{Binding SelectedClient}">
                     <ListView.ItemTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding}"/>
                         </DataTemplate>
                     </ListView.ItemTemplate>
                 </ListView>
-                <Border Margin="0,10,0,0" BorderBrush="Black" BorderThickness="1">
-                    <TextBox Background="#eee" Margin="0,5,0,5"
-                           Text="{Binding ThreatMessage}"
-                           MaxWidth="140" Height="20"/>
+            </StackPanel>
+            <StackPanel Width="150" Margin="10,0,0,0">
+                <Border BorderBrush="Black" BorderThickness="1"
+                        Margin="0,0,0,10">
+                    <TextBlock Background="#ccc"
+                               Height="120" Text="{Binding MessageText}" 
+                               d:Text="Клиент №1: Лох"/>
+                </Border>
+                <Border BorderBrush="Black" BorderThickness="1">
+                    <TextBox Height="60" Background="#eee" 
+                             Text="{Binding SendingText}" d:Text="Сам ты лох"/>
                 </Border>
             </StackPanel>
         </StackPanel>

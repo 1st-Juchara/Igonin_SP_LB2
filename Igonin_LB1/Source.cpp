@@ -37,6 +37,7 @@ class M_Session
 	CRITICAL_SECTION cs;
 	HANDLE hEvent;
 public:
+	queue<Message> messagesToSend;
 	int sessionID;
 
 	M_Session(int sessionID) :sessionID(sessionID)
@@ -84,6 +85,19 @@ public:
 		AddMessage(m);
 	}
 
+	void AddMessageToSend(Message& m)
+	{
+		EnterCriticalSection(&cs);
+		messagesToSend.push(m);
+		LeaveCriticalSection(&cs);
+	}
+
+	void AddMessageToSend(int from, int to, MessageTypes messageType, const wstring& data = L"")
+	{
+		Message m(from, to, messageType, data);
+		AddMessageToSend(m);
+	}
+
 	void SendMessage(tcp::socket &s, int from, int to, MessageTypes messageType, const wstring& data = L"")
 	{
 		EnterCriticalSection(&cs);
@@ -94,6 +108,7 @@ public:
 };
 
 vector<M_Session*> sessions;
+vector<int> ClientsID;
 mutex sessionsMutex;
 int max_ID = 0;
 
@@ -141,9 +156,14 @@ void processClient(tcp::socket s)
 		{
 			case MT_INIT:
 			{
+
 				sessions.push_back(new M_Session(++max_ID));
+				ClientsID.push_back(max_ID);
+				SafeWriteW("Session ", max_ID, " init");
+
 				thread t(MyThread, (LPVOID)sessions.back());
 				t.detach();
+				sessions.back()->SendMessage(s, m.header.from, max_ID, MT_INIT);
 				break;
 			}
 			case MT_CLOSE:
@@ -152,7 +172,7 @@ void processClient(tcp::socket s)
 				{
 					sessions.back()->AddMessage(m.header.from, m.header.to, MT_CLOSE);
 					sessions.pop_back();
-					max_ID--;
+					ClientsID.erase(ClientsID.begin() + m.header.from - 1);
 				}
 				break;
 			}
@@ -160,7 +180,21 @@ void processClient(tcp::socket s)
 			{
 				if (sessions.size())
 				{
-					sessions.back()->SendMessage(s, m.header.from, -1, MT_GETDATA, to_wstring(max_ID));
+					if (sessions[m.header.from - 1]->messagesToSend.empty())
+					{
+						wstring IDs = L"";
+						for (int id : ClientsID)
+						{
+							IDs += to_wstring(id) + L' ';
+						}
+						sessions[m.header.from - 1]->SendMessage(s, m.header.from, -1, MT_GETDATA, IDs);
+					}
+					else
+					{
+						sessions[m.header.from - 1]->messagesToSend.front().send(s);
+						sessions[m.header.from - 1]->messagesToSend.pop();
+						SafeWriteW("Client", m.header.from, "recieve message");
+					}
 				}
 				else
 				{
@@ -174,16 +208,13 @@ void processClient(tcp::socket s)
 			{
 				if (m.header.to == 0)
 				{
-					SafeWriteW(m.data);
-				}
-				else if (m.header.to == 1)
-				{
 					for (auto s : sessions)
-						s->AddMessage(m.header.from, m.header.to, MT_DATA, m.data);
+						s->AddMessageToSend(m.header.from, m.header.to, MT_DATA, m.data);
 				}
 				else
 				{
-					sessions[m.header.to - 2]->AddMessage(m.header.from, m.header.to, MT_DATA, m.data);
+					sessions[m.header.to - 1]->AddMessageToSend(m.header.from, m.header.to, MT_DATA, m.data);
+					SafeWriteW("Message from", m.header.from, " to ", m.header.to, ": ", m.data);
 				}
 				break;
 			}
@@ -213,7 +244,7 @@ int main()
 		int port = 12345;
 		boost::asio::io_context io;
 		tcp::acceptor a(io, tcp::endpoint(tcp::v4(), port));
-		for (int i = 0; i < 2; i++)
+		for (int i = 0; i < 3; i++)
 			launchClient("Igonin_Form.exe");
 
 		while (true)

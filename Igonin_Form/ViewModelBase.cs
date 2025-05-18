@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace Igonin_Form
 {
@@ -15,7 +16,10 @@ namespace Igonin_Form
 		protected void Set<T>(ref T field, T value, [CallerMemberName] string propName = "")
 		{
 			field = value;
-			PropertyChanged(this, new PropertyChangedEventArgs(propName));
+
+			if (PropertyChanged != null) {
+				PropertyChanged(this, new PropertyChangedEventArgs(propName));
+			}
 		}
 
 		protected void Notify(params string[] names)

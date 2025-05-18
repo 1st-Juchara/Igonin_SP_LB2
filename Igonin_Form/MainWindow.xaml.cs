@@ -35,12 +35,12 @@ namespace Lab_1_Igonin
 
 		private void Button_Start_Click(object sender, RoutedEventArgs e)
 		{
-			Sessions.StartSession();
+			//Sessions.StartSession();
 		}
 
 		private void Button_Stop_Click(object sender, RoutedEventArgs e)
 		{
-			Sessions.StopSession();
+			//Sessions.StopSession();
 		}
 
 		private void Button_Count_Up(object sender, RoutedEventArgs e)

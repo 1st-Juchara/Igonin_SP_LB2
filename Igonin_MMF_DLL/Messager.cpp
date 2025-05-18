@@ -14,8 +14,9 @@ extern "C" {
         }
     }
 
-    IGONIN_DLL_API int getSessionCount(int from)
+    IGONIN_DLL_API MessageData getServerData(int from, MessageTypes type)
     {
+        MessageData msgData = { };
         try {
             boost::asio::io_context io;
             tcp::socket socket(io);
@@ -23,21 +24,24 @@ extern "C" {
             auto endpoints = resolver.resolve("127.0.0.1", "12345");
             boost::asio::connect(socket, endpoints);
 
-            Message msg = Message(from, -1, MT_GETDATA);
+            Message msg = Message(from, -1, type);
             msg.send(socket);
             msg.receive(socket);
 
-            if (msg.header.type == MT_GETDATA) {
-                
-                int sessionCount = stoi(msg.data);
-                return sessionCount;
+            MessageData msgData = { };
+
+            msgData = { msg.header, {0} };
+            if (msg.header.size > 0)
+            {
+                wcsncpy_s(msgData.data, msg.data.c_str(), 249);
             }
-            return 0;
+            return msgData;
         }
         catch (const std::exception& e) {
             std::wcerr << L"[DLL] Ошибка при получении количества сессий: " << e.what() << std::endl;
-            return -1;
+            msgData = { {-2, -2, -2}, L"ERROR"};
         }
+        return msgData;
     }
     
 }

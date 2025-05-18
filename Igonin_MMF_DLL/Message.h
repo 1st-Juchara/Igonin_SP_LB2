@@ -28,7 +28,7 @@ IGONIN_DLL_API struct MessageHeader
 
 IGONIN_DLL_API struct MessageData {
 	MessageHeader header;
-	wstring data;
+	wchar_t data[250];
 };
 
 IGONIN_DLL_API class Message
