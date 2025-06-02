@@ -166,16 +166,16 @@ DWORD WINAPI MyThread(LPVOID lpParameter)
 
 void processClient(tcp::socket s)
 {
+	sessionsMutex.lock();
 	try
 	{
 		Message m;
-		sessionsMutex.lock();
 		int code = m.receive(s);
-		//if (m.header.from > 0)
-		//{
-		//	sessions[m.header.from]->lastCall = chrono::steady_clock::now();
-		//	CheckTimer(2000, m.header.from);
-		//}
+		if (m.header.from > 0)
+		{
+			sessions[m.header.from]->lastCall = chrono::steady_clock::now();
+			//CheckTimer(2000, m.header.from);
+		}
 		//SafeWriteW(L"Начало процесса");
 		//SafeWriteW(L"From: ", m.header.from, L"To: ", m.header.to, L"Type: ", m.header.type);
 		switch (code)
@@ -184,6 +184,7 @@ void processClient(tcp::socket s)
 			{
 				max_ID += 1;
 				sessions[max_ID] = new M_Session(max_ID);
+				sessions[max_ID]->lastCall = chrono::steady_clock::now();
 				SafeWriteW("Session ", max_ID, " init");
 
 				thread t(MyThread, (LPVOID)sessions[max_ID]);
@@ -202,30 +203,37 @@ void processClient(tcp::socket s)
 			}
 			case MT_GETDATA:
 			{
-				if (sessions.size())
+				try
 				{
-					if (sessions[m.header.from]->messagesToSend.empty())
+					if (sessions.size())
 					{
-						wstring IDs = L"";
-						for (auto session : sessions)
+						if (sessions[m.header.from]->messagesToSend.empty())
 						{
-							IDs += to_wstring(session.first) + L' ';
+							wstring IDs = L"";
+							for (auto session : sessions)
+							{
+								IDs += to_wstring(session.first) + L' ';
+							}
+							sessions[m.header.from]->SendMessage(s, m.header.from, 0, MT_GETDATA, IDs);
 						}
-						sessions[m.header.from]->SendMessage(s, m.header.from, -1, MT_GETDATA, IDs);
+						else
+						{
+							sessions[m.header.from]->messagesToSend.front().send(s);
+							sessions[m.header.from]->messagesToSend.pop();
+							SafeWriteW("Client", m.header.from, "recieve message");
+						}
 					}
 					else
 					{
-						sessions[m.header.from]->messagesToSend.front().send(s);
-						sessions[m.header.from]->messagesToSend.pop();
-						SafeWriteW("Client", m.header.from, "recieve message");
+						Message msg = Message(m.header.from, -1, MT_GETDATA, to_wstring(max_ID));
+						msg.send(s);
 					}
+					break;
 				}
-				else
+				catch (exception e)
 				{
-					Message msg = Message(m.header.from, -1, MT_GETDATA, to_wstring(max_ID));
-					msg.send(s);
+					SafeWrite(e.what());
 				}
-				break;
 				
 			}
 			case MT_DATA:
@@ -247,6 +255,7 @@ void processClient(tcp::socket s)
 				break;
 			}
 		}
+
 	}
 	catch (std::exception& e)
 	{
@@ -255,7 +264,32 @@ void processClient(tcp::socket s)
 	sessionsMutex.unlock();
 }
 
+void CheckSessionsTime()
+{
+	while (true)
+	{
+		sessionsMutex.lock();
+		SafeWrite("--Time-check--");
+		auto thisTime = chrono::steady_clock::now();
+		vector<int> idToKill;
+		for (auto session : sessions)
+		{
+			int deltaTime = chrono::duration_cast<chrono::milliseconds>(thisTime - session.second->lastCall).count();
+			if (deltaTime > 3000)
+			{
+				idToKill.push_back(session.first);
+			}
+		}
+		for (int id : idToKill)
+		{
+			sessions[id]->AddMessage(id, 0, MT_CLOSE);
+			sessions.erase(id);
+		}
+		sessionsMutex.unlock();
 
+		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+	}
+}
 
 int main()
 {
@@ -268,13 +302,15 @@ int main()
 		int port = 12345;
 		boost::asio::io_context io;
 		tcp::acceptor a(io, tcp::endpoint(tcp::v4(), port));
-		for (int i = 0; i < 3; i++)
+		for (int i = 0; i < 2; i++)
 			launchClient("Igonin_Form.exe");
 
+		std::thread(CheckSessionsTime).detach();
 		while (true)
 		{
 			std::thread(processClient, a.accept()).detach();
 		}
+
 	}
 	catch (std::exception& e)
 	{

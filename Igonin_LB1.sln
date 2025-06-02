@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Igonin_Form", "Igonin_Form\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Igonin_MMF_DLL", "Igonin_MMF_DLL\Igonin_MMF_DLL.vcxproj", "{60B00274-FEDD-4F23-8F04-FB643E9D7876}"
 EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "Igonin_Client_Python", "Igonin_Client_Python\Igonin_Client_Python.pyproj", "{869C4DC2-FA5A-4E3C-A87F-A6250E74BE19}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -59,6 +61,12 @@ Global
 		{60B00274-FEDD-4F23-8F04-FB643E9D7876}.Release|x64.Build.0 = Release|x64
 		{60B00274-FEDD-4F23-8F04-FB643E9D7876}.Release|x86.ActiveCfg = Release|Win32
 		{60B00274-FEDD-4F23-8F04-FB643E9D7876}.Release|x86.Build.0 = Release|Win32
+		{869C4DC2-FA5A-4E3C-A87F-A6250E74BE19}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{869C4DC2-FA5A-4E3C-A87F-A6250E74BE19}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{869C4DC2-FA5A-4E3C-A87F-A6250E74BE19}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{869C4DC2-FA5A-4E3C-A87F-A6250E74BE19}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{869C4DC2-FA5A-4E3C-A87F-A6250E74BE19}.Release|x64.ActiveCfg = Release|Any CPU
+		{869C4DC2-FA5A-4E3C-A87F-A6250E74BE19}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -15,16 +15,16 @@ namespace Igonin_Form
 {
 	internal class IgoninSessions : ViewModelBase
 	{
-		public enum MessageTypes : int
-		{
-			MT_INIT,
-			MT_CLOSE,
-			MT_GETDATA,
-			MT_DATA,
-			MT_NODATA,
-			MT_CONFIRM,
-			MT_EXIT
-		};
+		//public enum MessageTypes : int
+		//{
+		//	MT_INIT,
+		//	MT_CLOSE,
+		//	MT_GETDATA,
+		//	MT_DATA,
+		//	MT_NODATA,
+		//	MT_CONFIRM,
+		//	MT_EXIT
+		//};
 
 		[StructLayout(LayoutKind.Sequential)]
 		public struct MessageHeader
@@ -44,11 +44,11 @@ namespace Igonin_Form
 		}
 
 
-		[DllImport("Igonin_MMF_DLL.dll", CharSet = CharSet.Unicode)]
-		public static extern MessageData getServerData(int from, MessageTypes command = MessageTypes.MT_GETDATA);
-
-		[DllImport("Igonin_MMF_DLL.dll", CharSet = CharSet.Unicode)]
-		public static extern void sendCommand(int from, int to, MessageTypes command, string msg="");
+		//[DllImport("Igonin_MMF_DLL.dll", CharSet = CharSet.Unicode)]
+		//public static extern MessageData getServerData(int from, MessageTypes command = MessageTypes.MT_GETDATA);
+		//
+		//[DllImport("Igonin_MMF_DLL.dll", CharSet = CharSet.Unicode)]
+		//public static extern void sendCommand(int from, int to, MessageTypes command, string msg="");
 
 		public ObservableCollection<string> Clients { get; set; } = new ObservableCollection<string>();
 		
@@ -84,25 +84,28 @@ namespace Igonin_Form
 		private void InitClient()
 		{
 			//send Init msg, recieve id
-			MessageData msgData = getServerData(0, MessageTypes.MT_INIT);
-			
+			//MessageData msgData = getServerData(0, MessageTypes.MT_INIT);
+
+			Message msgData = Message.sendToServer(0, MessageTypes.MT_INIT);
+			//MessageBox.Show(msgData.header.to.ToString() + " is init!");
+
 			ClientID = msgData.header.to;
 		
 		}
 
 		public void CloseSessions()
 		{
-			sendCommand(ClientID, 0, MessageTypes.MT_CLOSE);
+			//Message.send(ClientID, 0, MessageTypes.MT_CLOSE);
 		}
 
 		public void SendData()
 		{
 			if (!string.IsNullOrEmpty(SendingText) && (SelectedClient >= 0) && (SelectedClient != ClientID))
 				if (SelectedClient > 0) {
-					sendCommand(ClientID, ClientsID[SelectedClient - 1], MessageTypes.MT_DATA, SendingText);
+					Message.send(ClientID, ClientsID[SelectedClient - 1], MessageTypes.MT_DATA, SendingText);
 				}
 				else {
-					sendCommand(ClientID, 0, MessageTypes.MT_DATA, SendingText);
+					Message.send(ClientID, 0, MessageTypes.MT_DATA, SendingText);
 				}
 
 		}
@@ -114,11 +117,11 @@ namespace Igonin_Form
 				InitClient();
 			}
 			while (tmp) {
-				MessageData msgData = getServerData(clientID);
+				Message msgData = Message.sendToServer(clientID);
 
 				switch (msgData.header.type) {
 
-					case (int)MessageTypes.MT_GETDATA:
+					case MessageTypes.MT_GETDATA:
 						List<int> IDs = msgData.data.Split(' ', StringSplitOptions.RemoveEmptyEntries)
 													.Select(int.Parse)
 													.ToList();
@@ -128,7 +131,7 @@ namespace Igonin_Form
 						tmp = false;
 						break;
 
-					case (int)MessageTypes.MT_DATA:
+					case MessageTypes.MT_DATA:
 						string message = "";
 						message += $"Клиент №{msgData.header.from}: ";
 						message += msgData.data + '\n';
@@ -138,10 +141,9 @@ namespace Igonin_Form
 					default:
 						break;
 				}
+
 			}
-			//cnt = msgData.he
-			//if (cnt != sNumber)
-			//	UpdateSessions(cnt);
+
 		}
 
 		void UpdateSessions(List<int> IDs)
